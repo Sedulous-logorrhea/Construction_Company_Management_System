@@ -2,6 +2,8 @@ from tkinter import *
 from PIL import ImageTk
 from tkinter import messagebox
 import mysql.connector as ms
+import smtplib
+
 
 
 class Login:
@@ -29,35 +31,35 @@ class Login:
         # Arranging every element onto the frame_input
         label1 = Label(frame_input, text="Login Here", font=('Bernard MT Condensed', 32, 'bold'), fg="black",
                        bg='white')
-        label1.place(x=200, y=20)
+        label1.place(x=240, y=20)
 
         Username_label = Label(frame_input, text="Username", font=("Goudy old style", 20, "bold"), fg='#40e0d0',
                                bg='white')
-        Username_label.place(x=155, y=95)
+        Username_label.place(x=210, y=95)
 
         self.Username_txt = Entry(frame_input, font=("times new roman", 12), bg='lightgray')
-        self.Username_txt.place(x=155, y=145, width=270, height=35)
+        self.Username_txt.place(x=210, y=145, width=270, height=35)
         self.Username_txt.insert(0, 'Enter your Username or E-mail')
 
         Password_label = Label(frame_input, text="Password", font=("Goudy old style", 20, "bold"), fg='#40e0d0',
                                bg='white')
-        Password_label.place(x=155, y=195)
+        Password_label.place(x=210, y=195)
 
         self.Password_txt = Entry(frame_input, font=("times new roman", 12), bg='lightgray')
-        self.Password_txt.place(x=155, y=245, width=270, height=35)
+        self.Password_txt.place(x=210, y=245, width=270, height=35)
         self.Password_txt.insert(0, 'Enter your Password')
 
         Forgot_pass_btn = Button(frame_input, text="Forgot Password?", cursor='hand2', command=self.forgot_pass,
                                  font=('calibri', 10), bg='white', fg='black', bd=0)
-        Forgot_pass_btn.place(x=250, y=305)
+        Forgot_pass_btn.place(x=290, y=305)
 
         Login_btn = Button(frame_input, text="Login", command=self.login, cursor="hand2",
                            font=("times new roman", 15), fg="white", bg="#40e0d0", bd=0, width=15, height=1)
-        Login_btn.place(x=215, y=340)
+        Login_btn.place(x=255, y=340)
 
-        Register_btn = Button(frame_input, command=self.Register, text="Not Registered?register", cursor="hand2",
+        Register_btn = Button(frame_input, command=self.Register, text="Not Registered?Register", cursor="hand2",
                               font=("calibri", 10), bg='white', fg="black", bd=0)
-        Register_btn.place(x=235, y=390)  # Register button for those not registered
+        Register_btn.place(x=280, y=390)  # Register button for those not registered
 
     def login(self):
         if self.Username_txt.get() == "" or self.Password_txt.get() == "":
@@ -107,11 +109,11 @@ class Login:
 
         frame_input = Frame(self.root,
                             bg='White')  # and this Frame for register here, username password etc etc   labels and entry boxes
-        frame_input.place(x=320, y=130, height=450, width=630)
+        frame_input.place(x=320, y=130, height=450, width=700)
 
         label1 = Label(frame_input, text="Register Here", font=('Bernard MT Condensed', 32, 'bold'), fg="black",
                        bg='white')
-        label1.place(x=45, y=20)
+        label1.place(x=35, y=20)
 
         # For username... label and textbox
         Username_label = Label(frame_input, text="Username", font=("Goudy old style", 20, "bold"), fg='#40e0d0',
@@ -134,19 +136,19 @@ class Login:
         #  For Email ID ...
         Email_label = Label(frame_input, text="Email-id", font=("Goudy old style", 20, "bold"), fg='#40e0d0',
                             bg='white')
-        Email_label.place(x=330, y=95)
+        Email_label.place(x=360, y=95)
 
         self.Email_Entry = Entry(frame_input, font=("times new roman", 15), bg='lightgray')
-        self.Email_Entry.place(x=330, y=145, width=270, height=35)
+        self.Email_Entry.place(x=360, y=145, width=270, height=35)
         self.Email_Entry.insert(0, 'Enter your E-mail ID')
 
         # Confirm Password... Label and Box
         Confirm_pass = Label(frame_input, text="Confirm Password", font=("Goudy old style", 20, "bold"), fg='#40e0d0',
                              bg='white')
-        Confirm_pass.place(x=330, y=195)
+        Confirm_pass.place(x=360, y=195)
 
         self.Confirm_pass = Entry(frame_input, font=("times new roman", 15), bg='lightgray')
-        self.Confirm_pass.place(x=330, y=245, width=270, height=35)
+        self.Confirm_pass.place(x=360, y=245, width=270, height=35)
         self.Confirm_pass.insert(0, 'Re-enter your Password')
 
         # Register Button
@@ -190,8 +192,8 @@ class Login:
 
                     self.reg_clear()
 
-            except Exception as es: \
- \
+            except Exception as es:
+
                     messagebox.showerror("Error", f"Error due to:{str(es)}", parent=self.root)
 
     def login_clear(self):
@@ -252,7 +254,57 @@ class Login:
         Label_note.place(x=10, y=320)
 
     def send_mail(self):
-        pass
+
+        if self.Username_Entry.get()=='' or self.Reg_email_entry.get()=='':
+            messagebox.showerror("Error", "All Fields Are Required", parent=self.root)
+        else:
+            mydb = ms.connect(host="localhost", user="root", password="12345", database="CCDBMS")
+            cursor = mydb.cursor()
+
+            cursor.execute("select * from users where email='{}' and username='{}'".format(self.Reg_email_entry.get(),self.Username_Entry.get()))
+            row = cursor.fetchone()
+            if row == None:
+                messagebox.showerror("User Doesn't Exist", "Please Register or contact IT support for extended assistance", parent=self.root)
+            else:
+
+
+                gmail_user = 'con.man.jih@gmail.com'
+                gmail_password = '1234@conmanjih'
+
+                sent_from = gmail_user
+                to = row[0]
+
+                forgot_password=row[2]
+                subject = 'Forgot Your Password. Find your Credentials Here.'
+                body = """
+                        Dear User,
+                            Here are login credentials
+                            Username : %s
+                            Password : %s"""%(self.Username_Entry.get(), forgot_password)
+
+                email_text = """\
+                        From: %s
+                        To: %s
+                        Subject: %s
+
+                        %s
+                        """ % (sent_from, to, subject, body)
+
+                try:
+                    smtp_server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+                    smtp_server.ehlo()
+                    smtp_server.login(gmail_user, gmail_password)
+                    smtp_server.sendmail(sent_from, to, email_text)
+                    smtp_server.close()
+                    print("Email sent successfully!")
+                except Exception as ex:
+                    print("Something went wrong….", ex)
+
+
+
+
+
+
 
     def appscreen(self):  # after login
         pass
